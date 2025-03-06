@@ -6,7 +6,7 @@ from flask import (
 import sqlalchemy.exc
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 from .db import db_session
 from .models import User
@@ -15,9 +15,9 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 @bp.post('/register')
 def register():
-    name = request.form.get('name', None)
-    email = request.form.get('email', None)
-    password = request.form.get('password', None)
+    name = request.json.get('name', None)
+    email = request.json.get('email', None)
+    password = request.json.get('password', None)
 
     if not (name and email and password):
         return jsonify({
@@ -35,21 +35,19 @@ def register():
         }), 400
     else:
         return jsonify({
-            'user': {
-                'id': user.id,
-                'name': user.name,
-                'email': user.email
-            }
+            'success': True,
+            'user': user.to_json()
         })
 
 @bp.post('/login')
 def login():
-    email = request.form.get('email', None)
-    password = request.form.get('password', None)
+    email = request.json.get('email', None)
+    password = request.json.get('password', None)
 
     if not (email and password):
         return jsonify({
-            'errors': ['email and password are required']
+            'success': False,
+            'message': 'Email and password are required'
         }), 400
 
     user = User.query.filter_by(email=email).first()
@@ -57,11 +55,24 @@ def login():
     if user and check_password_hash(user.password, password):
         access_token = create_access_token(identity=user.email)
         return jsonify({
+            'success': True,
             'data': {
                 'access_token': access_token
             }
         })
     else:
         return jsonify({
-            'errors': ['Invalid credentials']
+            'success': False,
+            'message': 'Invalid credentials'
         }), 401
+        
+@bp.get('/user')
+@jwt_required()
+def user():
+    user_email = get_jwt_identity()
+    
+    user = User.query.filter_by(email=user_email).first()
+    
+    return jsonify({
+        'user': user.to_json()
+    })
