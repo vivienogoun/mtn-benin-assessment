@@ -17,9 +17,7 @@ export function TaskList({ title, tasks }: { title: string; tasks?: Task[] }) {
           .put(`/tasks/${taskId}`, {
             status: getListStatusFromTitle(title),
           })
-          .then((response) =>
-            changeTaskStatus(taskId, getListStatusFromTitle(title))
-          )
+          .then(() => changeTaskStatus(taskId, getListStatusFromTitle(title)))
           .catch((error) => console.log(error));
       },
       collect: (monitor) => ({
