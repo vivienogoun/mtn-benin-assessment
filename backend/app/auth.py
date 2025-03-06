@@ -1,5 +1,3 @@
-import functools
-import bcrypt
 import sqlalchemy
 
 from flask import (
