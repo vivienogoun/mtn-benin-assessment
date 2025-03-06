@@ -42,7 +42,8 @@ def create_app(test_config=None):
 
     jwt = JWTManager(app)
 
-    from . import auth
+    from . import auth, task
     app.register_blueprint(auth.bp)
+    app.register_blueprint(task.bp)
 
     return app
