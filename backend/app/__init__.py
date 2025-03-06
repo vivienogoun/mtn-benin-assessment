@@ -29,8 +29,10 @@ def create_app(test_config=None):
     def hello():
         return 'Hello, World!'
 
-    from . import db
-    db.init_app(app)
+    from app.db import db_session
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        db_session.remove()
 
     from . import auth
     app.register_blueprint(auth.bp)
